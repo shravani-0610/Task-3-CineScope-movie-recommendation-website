@@ -1,11 +1,11 @@
 // global variables
-var API_KEY = "";
+var API_KEY = "2382f9afcdf99bcbce8930e250c5f1d7";
 var IMG_URL = "https://image.tmdb.org/t/p/";
 var featuredList = [];
 var currentSlide = 0;
 var slideTimer = null;
 
-// demo movies (shown before API key is added)
+// demo movies (fallback if API fails)
 var demoMovies = [
   { id: 1, title: "Inception", release_date: "2010-07-16", vote_average: 8.8, overview: "A thief who steals corporate secrets through dream-sharing technology is given the inverse task of planting an idea into the mind of a CEO.", poster_path: null, backdrop_path: null, genre_ids: [28, 878, 53] },
   { id: 2, title: "Interstellar", release_date: "2014-11-05", vote_average: 8.6, overview: "A team of explorers travel through a wormhole in space in an attempt to ensure humanity's survival.", poster_path: null, backdrop_path: null, genre_ids: [878, 18, 12] },
@@ -29,30 +29,22 @@ var genreNames = {
 // ---- HELPER FUNCTIONS ----
 
 function getPosterUrl(path) {
-  if (path) {
-    return IMG_URL + "w342" + path;
-  }
+  if (path) { return IMG_URL + "w342" + path; }
   return null;
 }
 
 function getBackdropUrl(path) {
-  if (path) {
-    return IMG_URL + "w1280" + path;
-  }
+  if (path) { return IMG_URL + "w1280" + path; }
   return null;
 }
 
 function getYear(dateStr) {
-  if (dateStr) {
-    return dateStr.slice(0, 4);
-  }
+  if (dateStr) { return dateStr.slice(0, 4); }
   return "N/A";
 }
 
 function getRating(val) {
-  if (val) {
-    return val.toFixed(1);
-  }
+  if (val) { return val.toFixed(1); }
   return "-";
 }
 
@@ -60,51 +52,34 @@ function showToast(msg) {
   var toast = document.getElementById("toast-msg");
   toast.textContent = msg;
   toast.classList.add("show");
-  setTimeout(function() {
-    toast.classList.remove("show");
-  }, 3000);
+  setTimeout(function() { toast.classList.remove("show"); }, 3000);
 }
 
 
 // ---- CAROUSEL SCROLL ----
 
 function slideLeft(carouselId) {
-  var el = document.getElementById(carouselId);
-  el.scrollLeft -= 440;
+  document.getElementById(carouselId).scrollLeft -= 440;
 }
 
 function slideRight(carouselId) {
-  var el = document.getElementById(carouselId);
-  el.scrollLeft += 440;
+  document.getElementById(carouselId).scrollLeft += 440;
 }
 
 
 // ---- MAKE A MOVIE CARD ----
 
 function makeCard(movie, rank) {
-  // create the card div
   var card = document.createElement("div");
   card.className = "movie-card";
+  card.onclick = function() { openModal(movie.id); };
 
-  // open modal when clicked
-  card.onclick = function() {
-    openModal(movie.id);
-  };
-
-  // poster image or placeholder
   var poster = getPosterUrl(movie.poster_path);
-  var imgHTML = "";
-  if (poster) {
-    imgHTML = '<img src="' + poster + '" alt="' + movie.title + '" loading="lazy" />';
-  } else {
-    imgHTML = '<div class="no-poster">🎬</div>';
-  }
+  var imgHTML = poster
+    ? '<img src="' + poster + '" alt="' + movie.title + '" loading="lazy" />'
+    : '<div class="no-poster">🎬</div>';
 
-  // rank badge (only for top 3)
-  var badgeHTML = "";
-  if (rank) {
-    badgeHTML = '<div class="rank-badge">' + rank + '</div>';
-  }
+  var badgeHTML = rank ? '<div class="rank-badge">' + rank + '</div>' : "";
 
   card.innerHTML = badgeHTML + imgHTML +
     '<div class="card-info">' +
@@ -123,13 +98,9 @@ function makeCard(movie, rank) {
 
 function fillCarousel(carouselId, movies, showRank) {
   var carousel = document.getElementById(carouselId);
-  carousel.innerHTML = ""; // clear skeletons
-
+  carousel.innerHTML = "";
   for (var i = 0; i < movies.length; i++) {
-    var rank = null;
-    if (showRank && i < 3) {
-      rank = "#" + (i + 1);
-    }
+    var rank = (showRank && i < 3) ? "#" + (i + 1) : null;
     carousel.appendChild(makeCard(movies[i], rank));
   }
 }
@@ -139,13 +110,10 @@ function fillCarousel(carouselId, movies, showRank) {
 
 function buildFeatured() {
   if (featuredList.length === 0) return;
-
-  // stop any running timer
   clearInterval(slideTimer);
 
   var slidesContainer = document.getElementById("featured-slides");
   var dotsContainer = document.getElementById("slide-dots");
-
   slidesContainer.innerHTML = "";
   dotsContainer.innerHTML = "";
 
@@ -155,19 +123,14 @@ function buildFeatured() {
     var movie = featuredList[i];
     var bg = getBackdropUrl(movie.backdrop_path);
 
-    // build slide
     var slide = document.createElement("div");
     slide.className = "featured-slide" + (i === 0 ? " active" : "");
 
-    var imgPart = "";
-    if (bg) {
-      imgPart = '<img src="' + bg + '" alt="' + movie.title + '" />';
-    } else {
-      imgPart = '<div class="no-img">🎬</div>';
-    }
+    var imgPart = bg
+      ? '<img src="' + bg + '" alt="' + movie.title + '" />'
+      : '<div class="no-img">🎬</div>';
 
     var movieId = movie.id;
-
     slide.innerHTML = imgPart +
       '<div class="featured-overlay">' +
         '<div class="featured-text">' +
@@ -183,61 +146,31 @@ function buildFeatured() {
 
     slidesContainer.appendChild(slide);
 
-    // build dot button for this slide
     var dot = document.createElement("button");
     if (i === 0) dot.className = "active";
-
-    // use IIFE to capture correct index value in the loop
     (function(index) {
-      dot.onclick = function() {
-        goToSlide(index);
-      };
+      dot.onclick = function() { goToSlide(index); };
     })(i);
-
     dotsContainer.appendChild(dot);
   }
 
   currentSlide = 0;
-
-  // auto-advance slide every 5 seconds
   slideTimer = setInterval(function() {
     var slides = document.querySelectorAll(".featured-slide");
-    var next = (currentSlide + 1) % slides.length;
-    goToSlide(next);
+    goToSlide((currentSlide + 1) % slides.length);
   }, 5000);
 }
 
-
-// switch to a specific slide
 function goToSlide(index) {
   var slides = document.querySelectorAll(".featured-slide");
   var dots = document.querySelectorAll(".slide-dots button");
-
   for (var i = 0; i < slides.length; i++) {
     slides[i].classList.remove("active");
     dots[i].classList.remove("active");
   }
-
   slides[index].classList.add("active");
   dots[index].classList.add("active");
   currentSlide = index;
-}
-
-
-// ---- API KEY ----
-
-function setApiKey() {
-  var input = document.getElementById("api-key-input").value.trim();
-
-  if (!input) {
-    showToast("Please enter a valid API key");
-    return;
-  }
-
-  API_KEY = input;
-  document.getElementById("load-btn").textContent = "Loading...";
-
-  loadAllSections();
 }
 
 
@@ -246,16 +179,12 @@ function setApiKey() {
 async function fetchTMDB(path) {
   var url = "https://api.themoviedb.org/3" + path + "?api_key=" + API_KEY + "&language=en-US";
   var response = await fetch(url);
-
-  if (!response.ok) {
-    throw new Error("API error: " + response.status);
-  }
-
+  if (!response.ok) { throw new Error("API error: " + response.status); }
   return await response.json();
 }
 
 
-// ---- LOAD ALL SECTIONS ----
+// ---- LOAD ALL SECTIONS FROM LIVE API ----
 
 async function loadAllSections() {
   try {
@@ -263,7 +192,6 @@ async function loadAllSections() {
     var nowPlaying = await fetchTMDB("/movie/now_playing");
     var topRated   = await fetchTMDB("/movie/top_rated");
 
-    // only use movies that have a backdrop image for featured
     featuredList = trending.results.filter(function(m) {
       return m.backdrop_path;
     }).slice(0, 8);
@@ -274,13 +202,11 @@ async function loadAllSections() {
     fillCarousel("carousel-nowplaying", nowPlaying.results.slice(0, 12), false);
     fillCarousel("carousel-toprated",   topRated.results.slice(0, 12),   true);
 
-    document.getElementById("load-btn").textContent = "Loaded!";
     showToast("Movies loaded successfully!");
 
   } catch (err) {
-    showToast("Error: " + err.message + " — Check your API key");
-    document.getElementById("load-btn").textContent = "Retry";
-    API_KEY = "";
+    showToast("Failed to load movies: " + err.message);
+    loadDemo(); // fallback to demo data
   }
 }
 
@@ -307,26 +233,6 @@ async function runSearch(query) {
   document.getElementById("search-heading").innerHTML = "Search <span>Results</span>";
   section.scrollIntoView({ behavior: "smooth" });
 
-  // no API key — filter demo movies locally
-  if (!API_KEY) {
-    var found = demoMovies.filter(function(m) {
-      return m.title.toLowerCase().includes(query.toLowerCase());
-    });
-
-    grid.innerHTML = "";
-
-    if (found.length === 0) {
-      grid.innerHTML = "<p style='color:#9996a8'>No demo results. Add TMDB API key for full search.</p>";
-      return;
-    }
-
-    for (var i = 0; i < found.length; i++) {
-      grid.appendChild(makeCard(found[i], null));
-    }
-    return;
-  }
-
-  // with API key
   try {
     var url = "https://api.themoviedb.org/3/search/movie?api_key=" + API_KEY + "&query=" + encodeURIComponent(query) + "&language=en-US";
     var response = await fetch(url);
@@ -365,26 +271,6 @@ async function genreSearch(genreId, genreName) {
   grid.innerHTML = "<p style='color:#9996a8'>Loading...</p>";
   section.scrollIntoView({ behavior: "smooth" });
 
-  // no API key — filter demo movies
-  if (!API_KEY) {
-    var found = demoMovies.filter(function(m) {
-      return m.genre_ids && m.genre_ids.includes(genreId);
-    });
-
-    grid.innerHTML = "";
-
-    if (found.length === 0) {
-      grid.innerHTML = "<p style='color:#9996a8'>No demo movies for this genre. Add API key for full results.</p>";
-      return;
-    }
-
-    for (var i = 0; i < found.length; i++) {
-      grid.appendChild(makeCard(found[i], null));
-    }
-    return;
-  }
-
-  // with API key
   try {
     var url = "https://api.themoviedb.org/3/discover/movie?api_key=" + API_KEY + "&with_genres=" + genreId + "&sort_by=popularity.desc&language=en-US";
     var response = await fetch(url);
@@ -408,23 +294,6 @@ async function openModal(movieId) {
   document.getElementById("modal-overlay").classList.add("open");
   document.getElementById("modal-content").innerHTML = "<div style='padding:40px; text-align:center; color:#9996a8;'>Loading...</div>";
 
-  // no API key — use demo data
-  if (!API_KEY) {
-    var found = null;
-    for (var i = 0; i < demoMovies.length; i++) {
-      if (demoMovies[i].id === movieId) {
-        found = demoMovies[i];
-      }
-    }
-    if (found) {
-      showModal(found);
-    } else {
-      document.getElementById("modal-content").innerHTML = "<div style='padding:40px'>Movie not found in demo data.</div>";
-    }
-    return;
-  }
-
-  // with API key — fetch full details
   try {
     var url = "https://api.themoviedb.org/3/movie/" + movieId + "?api_key=" + API_KEY + "&language=en-US";
     var response = await fetch(url);
@@ -438,32 +307,22 @@ async function openModal(movieId) {
 function showModal(movie) {
   var backdrop = getBackdropUrl(movie.backdrop_path);
 
-  // build genre tags
   var genreTags = "";
   if (movie.genres) {
-    // from full API response
     for (var i = 0; i < Math.min(movie.genres.length, 4); i++) {
       genreTags += '<span class="genre-tag">' + movie.genres[i].name + '</span>';
     }
   } else if (movie.genre_ids) {
-    // from demo data
     for (var j = 0; j < Math.min(movie.genre_ids.length, 4); j++) {
       var name = genreNames[movie.genre_ids[j]];
-      if (name) {
-        genreTags += '<span class="genre-tag">' + name + '</span>';
-      }
+      if (name) { genreTags += '<span class="genre-tag">' + name + '</span>'; }
     }
   }
 
-  // backdrop image or placeholder
-  var backdropHTML = "";
-  if (backdrop) {
-    backdropHTML = '<img class="modal-backdrop-img" src="' + backdrop + '" alt="' + movie.title + '" />';
-  } else {
-    backdropHTML = '<div class="modal-backdrop-placeholder">🎬</div>';
-  }
+  var backdropHTML = backdrop
+    ? '<img class="modal-backdrop-img" src="' + backdrop + '" alt="' + movie.title + '" />'
+    : '<div class="modal-backdrop-placeholder">🎬</div>';
 
-  // runtime
   var runtimeHTML = "";
   if (movie.runtime) {
     var hrs = Math.floor(movie.runtime / 60);
@@ -471,11 +330,9 @@ function showModal(movie) {
     runtimeHTML = '<span>⏱ ' + hrs + 'h ' + mins + 'm</span>';
   }
 
-  // vote count
-  var votesHTML = "";
-  if (movie.vote_count) {
-    votesHTML = '<span style="font-size:13px;">(' + movie.vote_count.toLocaleString() + ' votes)</span>';
-  }
+  var votesHTML = movie.vote_count
+    ? '<span style="font-size:13px;">(' + movie.vote_count.toLocaleString() + ' votes)</span>'
+    : "";
 
   var popularity = movie.popularity ? Math.round(movie.popularity) : "-";
 
@@ -499,11 +356,8 @@ function showModal(movie) {
     '</div>';
 }
 
-// close modal when clicking the dark overlay
 function closeModalClick(event) {
-  if (event.target === document.getElementById("modal-overlay")) {
-    closeModal();
-  }
+  if (event.target === document.getElementById("modal-overlay")) { closeModal(); }
 }
 
 function closeModal() {
@@ -514,35 +368,26 @@ function closeModal() {
 // ---- KEYBOARD SHORTCUTS ----
 
 document.addEventListener("keydown", function(e) {
-  if (e.key === "Escape") {
-    closeModal();
-  }
+  if (e.key === "Escape") { closeModal(); }
 });
 
 document.getElementById("search-input").addEventListener("keydown", function(e) {
-  if (e.key === "Enter") {
-    doSearch();
-  }
+  if (e.key === "Enter") { doSearch(); }
 });
 
 
-// ---- INIT: load demo data on page load ----
+// ---- FALLBACK DEMO LOADER ----
 
 function loadDemo() {
   featuredList = demoMovies;
   buildFeatured();
-
   fillCarousel("carousel-trending", demoMovies, true);
-
-  // reverse for now playing
   var reversed = demoMovies.slice().reverse();
   fillCarousel("carousel-nowplaying", reversed, false);
-
-  // sort by rating for top rated
-  var sorted = demoMovies.slice().sort(function(a, b) {
-    return b.vote_average - a.vote_average;
-  });
+  var sorted = demoMovies.slice().sort(function(a, b) { return b.vote_average - a.vote_average; });
   fillCarousel("carousel-toprated", sorted, true);
 }
 
-loadDemo();
+
+// ---- INIT: fetch live data on page load ----
+loadAllSections();
