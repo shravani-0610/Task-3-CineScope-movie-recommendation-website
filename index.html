@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CineScope - Movie Recommendations</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav>
+  <div class="logo">Cine<span>Scope</span></div>
+  <ul class="nav-links">
+    <li><a href="#trending-section">Trending</a></li>
+    <li><a href="#genres-section">Genres</a></li>
+    <li><a href="#toprated-section">Top Rated</a></li>
+  </ul>
+</nav>
+
+
+<!-- HERO -->
+<div class="hero">
+  <p class="hero-label">✦ Your personal cinema guide</p>
+  <h1>Discover <em>films</em><br>you'll love</h1>
+  <p>Millions of movies, real-time data from TMDB.<br>Search, explore, and find your next obsession.</p>
+
+  <div class="search-box">
+    <input type="text" id="search-input" placeholder="Search movies, directors, genres..." />
+    <button onclick="doSearch()">Search</button>
+  </div>
+
+  <div class="quick-tags">
+    <button onclick="quickSearch('Inception')">Inception</button>
+    <button onclick="quickSearch('The Godfather')">The Godfather</button>
+    <button onclick="quickSearch('Dune')">Dune</button>
+    <button onclick="quickSearch('Interstellar')">Interstellar</button>
+    <button onclick="quickSearch('Parasite')">Parasite</button>
+  </div>
+</div>
+
+
+
+<!-- FEATURED SLIDER -->
+<section id="trending-section">
+  <div class="section-top">
+    <h2>★ <span>Featured</span> Now</h2>
+    <a onclick="buildFeatured()">↻ Refresh</a>
+  </div>
+  <div class="featured-area">
+    <div id="featured-slides">
+      <div class="featured-slide active" style="background:#1a1a26; height:460px; border-radius:20px; display:flex; align-items:center; justify-content:center; color:#6b6880; font-size:18px;">
+        Loading featured movies...
+      </div>
+    </div>
+    <div class="slide-dots" id="slide-dots"></div>
+  </div>
+</section>
+
+
+<!-- TRENDING CAROUSEL -->
+<section>
+  <div class="section-top">
+    <h2>🔥 <span>Trending</span> This Week</h2>
+    <a href="#toprated-section">See top rated →</a>
+  </div>
+  <div class="carousel-wrap">
+    <button class="carousel-arrow left" onclick="slideLeft('carousel-trending')">&#8249;</button>
+    <div class="carousel" id="carousel-trending">
+      <div class="skeleton-card"><div class="skel-poster"></div><div class="skel-line"></div><div class="skel-line short"></div></div>
+      <div class="skeleton-card"><div class="skel-poster"></div><div class="skel-line"></div><div class="skel-line short"></div></div>
+      <div class="skeleton-card"><div class="skel-poster"></div><div class="skel-line"></div><div class="skel-line short"></div></div>
+      <div class="skeleton-card"><div class="skel-poster"></div><div class="skel-line"></div><div class="skel-line short"></div></div>
+      <div class="skeleton-card"><div class="skel-poster"></div><div class="skel-line"></div><div class="skel-line short"></div></div>
+    </div>
+    <button class="carousel-arrow right" onclick="slideRight('carousel-trending')">&#8250;</button>
+  </div>
+</section>
+
+
+<!-- GENRES -->
+<section id="genres-section" class="dark-bg">
+  <div class="section-top">
+    <h2>Browse by <span>Genre</span></h2>
+  </div>
+  <div class="genres-grid">
+    <div class="genre-card" onclick="genreSearch(28, 'Action')">
+      <div class="genre-icon">💥</div>
+      <div class="genre-name">Action</div>
+    </div>
+    <div class="genre-card" onclick="genreSearch(35, 'Comedy')">
+      <div class="genre-icon">😂</div>
+      <div class="genre-name">Comedy</div>
+    </div>
+    <div class="genre-card" onclick="genreSearch(27, 'Horror')">
+      <div class="genre-icon">👻</div>
+      <div class="genre-name">Horror</div>
+    </div>
+    <div class="genre-card" onclick="genreSearch(878, 'Sci-Fi')">
+      <div class="genre-icon">🚀</div>
+      <div class="genre-name">Sci-Fi</div>
+    </div>
+    <div class="genre-card" onclick="genreSearch(10749, 'Romance')">
+      <div class="genre-icon">💘</div>
+      <div class="genre-name">Romance</div>
+    </div>
+    <div class="genre-card" onclick="genreSearch(16, 'Animation')">
+      <div class="genre-icon">🎨</div>
+      <div class="genre-name">Animation</div>
+    </div>
+    <div class="genre-card" onclick="genreSearch(53, 'Thriller')">
+      <div class="genre-icon">🔪</div>
+      <div class="genre-name">Thriller</div>
+    </div>
+    <div class="genre-card" onclick="genreSearch(99, 'Documentary')">
+      <div class="genre-icon">🎞</div>
+      <div class="genre-name">Documentary</div>
+    </div>
+  </div>
+</section>
+
+
+<!-- NOW PLAYING -->
+<section>
+  <div class="section-top">
+    <h2>🎬 Now <span>Playing</span></h2>
+    <span style="color:#6b6880; font-size:12px; text-transform:uppercase;">In theaters</span>
+  </div>
+  <div class="carousel-wrap">
+    <button class="carousel-arrow left" onclick="slideLeft('carousel-nowplaying')">&#8249;</button>
+    <div class="carousel" id="carousel-nowplaying">
+      <div class="skeleton-card"><div class="skel-poster"></div><div class="skel-line"></div><div class="skel-line short"></div></div>
+      <div class="skeleton-card"><div class="skel-poster"></div><div class="skel-line"></div><div class="skel-line short"></div></div>
+      <div class="skeleton-card"><div class="skel-poster"></div><div class="skel-line"></div><div class="skel-line short"></div></div>
+      <div class="skeleton-card"><div class="skel-poster"></div><div class="skel-line"></div><div class="skel-line short"></div></div>
+    </div>
+    <button class="carousel-arrow right" onclick="slideRight('carousel-nowplaying')">&#8250;</button>
+  </div>
+</section>
+
+
+<!-- TOP RATED -->
+<section id="toprated-section" class="dark-bg">
+  <div class="section-top">
+    <h2>🏆 <span>Top Rated</span> Of All Time</h2>
+  </div>
+  <div class="carousel-wrap">
+    <button class="carousel-arrow left" onclick="slideLeft('carousel-toprated')">&#8249;</button>
+    <div class="carousel" id="carousel-toprated">
+      <div class="skeleton-card"><div class="skel-poster"></div><div class="skel-line"></div><div class="skel-line short"></div></div>
+      <div class="skeleton-card"><div class="skel-poster"></div><div class="skel-line"></div><div class="skel-line short"></div></div>
+      <div class="skeleton-card"><div class="skel-poster"></div><div class="skel-line"></div><div class="skel-line short"></div></div>
+      <div class="skeleton-card"><div class="skel-poster"></div><div class="skel-line"></div><div class="skel-line short"></div></div>
+    </div>
+    <button class="carousel-arrow right" onclick="slideRight('carousel-toprated')">&#8250;</button>
+  </div>
+</section>
+
+
+<!-- SEARCH RESULTS -->
+<section id="search-section">
+  <div class="section-top">
+    <h2 id="search-heading">Search <span>Results</span></h2>
+    <a onclick="closeSearch()">✕ Close</a>
+  </div>
+  <div class="results-grid" id="search-grid"></div>
+</section>
+
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModalClick(event)">
+  <div class="modal-box" id="modal-box">
+    <button class="modal-close-btn" onclick="closeModal()">✕</button>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+
+<!-- TOAST -->
+<div class="toast" id="toast-msg"></div>
+
+
+<!-- FOOTER -->
+<footer>
+  <div class="logo">Cine<span>Scope</span></div>
+  <span>Powered by TMDB API · Built for web dev internship</span>
+  <span>Designed by Shravani © 2026 CineScope</span>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
